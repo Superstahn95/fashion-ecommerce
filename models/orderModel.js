@@ -42,7 +42,10 @@ const orderSchema = new mongoose.Schema({
     type: String,
     required: [true, "Phone number is required"],
   },
-  paymentReference: String,
+  paymentReference: {
+    type: String,
+    required: [true, "Reference is required"],
+  },
   status: {
     type: String,
     enum: ["pending", "processing", "shipped", "delivered", "cancelled"],

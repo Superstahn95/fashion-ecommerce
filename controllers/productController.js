@@ -10,7 +10,6 @@ exports.getProducts = asyncErrorHandler(async (req, res, next) => {
   // need to use the limit method
   const { pageNo = 0, limit = 10 } = req.query;
   console.log("we are here");
-
   const products = await Product.find()
     .sort({ createdAt: -1 })
     .skip(parseInt(pageNo))
@@ -18,7 +17,7 @@ exports.getProducts = asyncErrorHandler(async (req, res, next) => {
     .populate("category");
   res.status(200).json({
     status: "success",
-    data: products,
+    products,
   });
 });
 
@@ -45,6 +44,7 @@ exports.createProduct = asyncErrorHandler(async (req, res, next) => {
 
   res.status(200).json({
     status: "success",
+    message: "Product has been added to log",
     product,
   });
 });
@@ -129,6 +129,7 @@ exports.updateProduct = asyncErrorHandler(async (req, res, next) => {
   //what happens to the category model if we decide to change the category of an item?? => fix this
   res.status(200).json({
     status: "success",
+    message: "product has been uploaded",
     product: updatedProduct,
   });
 });

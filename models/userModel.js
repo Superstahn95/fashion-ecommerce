@@ -14,6 +14,7 @@ const userSchema = new mongoose.Schema({
   },
   phoneNumber: {
     type: String,
+    required: [true, "Phone number is required"],
   },
   profilePicture: {
     type: Object,
@@ -28,6 +29,7 @@ const userSchema = new mongoose.Schema({
   },
   shippingAddress: {
     type: String,
+    required: [true, "Shipping Address is required"],
   },
   password: {
     type: String,

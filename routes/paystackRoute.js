@@ -3,5 +3,5 @@ const { protect } = require("../controllers/authController");
 const { verifyPayment } = require("../controllers/paystackController");
 const router = express.Router();
 
-router.post("/", protect, verifyPayment);
+router.post("/", verifyPayment);
 module.exports = router;

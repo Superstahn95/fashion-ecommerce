@@ -2,7 +2,8 @@ const express = require("express");
 const dotenv = require("dotenv");
 const connectDb = require("./config/db");
 const globalErrorHandler = require("./controllers/errorController");
-const axios = require("axios");
+const cors = require("./middlewares/cors");
+const cookieParser = require("cookie-parser");
 
 const app = express();
 dotenv.config();
@@ -10,8 +11,14 @@ const PORT = process.env.PORT || 5500;
 
 //middleware
 app.use(express.json());
+app.use(cookieParser());
 app.use(express.urlencoded({ extended: false })); // what does this really do?? => urlencoded data parser middleware
+app.use(cors);
 
+app.get("/private", (req, res) => {
+  if (!req.cookies.access_token) return res.status(401).send("No cookies bro");
+  res.status(200).json({ secret: "Ginger ale is a specific Root Beer" });
+});
 //routing middleware
 app.use("/api/v1/product", require("./routes/productRoute"));
 app.use("/api/v1/category", require("./routes/categoryRoute"));
