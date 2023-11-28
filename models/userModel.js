@@ -40,9 +40,12 @@ const userSchema = new mongoose.Schema({
     required: [true, "Please confirm password"],
     validate: {
       validator: function (val) {
-        return (this.password = val);
+        if (this.isModified("password")) {
+          return val === this.password;
+        }
+        return true;
       },
-      message: "Password and confirm password do not match",
+      message: "Passwords do not match",
     },
     role: {
       type: String,

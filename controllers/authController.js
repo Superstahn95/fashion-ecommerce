@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/userModel");
+const Token = require("../models/TokenModel");
 const asyncErrorHandler = require("../utils/asyncErrorHandler");
 const cloudinary = require("../utils/cloudinary");
 const CustomError = require("../utils/customError");
@@ -20,12 +21,29 @@ exports.registerUser = asyncErrorHandler(async (req, res, next) => {
   }
   //   await user.hashPassword();
   const savedUser = await user.save();
-  const token = generateJwtToken(savedUser._id);
-  //sending the token as part of my response because i want to log in the user after an account has been created
-  res.cookie("access_token", token, { httpOnly: true }).status(200).json({
-    status: "success",
-    user,
+  const accessToken = generateJwtAccessToken(savedUser._id);
+  const refreshToken = generateJwtRefreshToken(savedUser._id);
+  const expiredAt = new Date();
+  expiredAt.setDate(expiredAt.getDate() + 7); //token will expire 7 days later
+  //save token to token model
+  const newToken = new Token({
+    user: savedUser._id,
+    refreshToken,
+    expiredAt,
   });
+  await newToken.save();
+  //sending the token as part of my response because i want to log in the user after an account has been created
+  res
+    .cookie("refresh_token", refreshToken, {
+      httpOnly: true,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    })
+    .status(200)
+    .json({
+      status: "success",
+      savedUser,
+      token: accessToken,
+    });
 });
 exports.logInUser = asyncErrorHandler(async (req, res, next) => {
   const { email, password } = req.body;
@@ -46,20 +64,66 @@ exports.logInUser = asyncErrorHandler(async (req, res, next) => {
     const err = new CustomError("Invalid credentials", 404);
     return next(err);
   }
-  const token = generateJwtToken(user._id);
-  //set cookies
-  res.cookie("access_token", token, { httpOnly: true }).status(200).json({
-    status: "success",
-    user,
+  const accessToken = generateJwtAccessToken(savedUser._id);
+  const refreshToken = generateJwtRefreshToken(savedUser._id);
+  const expiredAt = new Date();
+  expiredAt.setDate(expiredAt.getDate() + 7); //token will expire 7 days later
+  //save token to token model
+  const newToken = new Token({
+    user: user._id,
+    refreshToken,
+    expiredAt,
   });
+
+  await newToken.save();
+  //sending the token as part of my response because i want to log in the user after an account has been created
+  res
+    .cookie("refresh_token", refreshToken, {
+      httpOnly: true,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    })
+    .status(200)
+    .json({
+      status: "success",
+      user,
+      token: accessToken,
+    });
+  // const token = generateJwtToken(user._id);
+  //set cookies
+  // res.cookie("access_token", token, { httpOnly: true }).status(200).json({
+  //   status: "success",
+  //   user,
+  // });
   // res.status(200).json({
   //   status: "success",
   //   data: user,
   //   token,
   // });
 });
-
+exports.refresh = asyncErrorHandler(async (req, res, next) => {
+  const refreshToken = req.cookies["refresh_token"];
+  const decodedToken = jwt.verify(
+    refreshToken,
+    process.env.JWT_REFRESH_TOKEN_SECRET
+  );
+  if (!decodedToken) {
+    const err = new CustomError("Unauthenticated", 401);
+    return next(err);
+  }
+  const currentDate = new Date();
+  const token = await Token.findOne({
+    user: decodedToken.id,
+    expiredAt: { $gte: currentDate },
+  });
+  if (!token) {
+    const err = new CustomError("Unauthenticated", 401);
+    return next(err);
+  }
+  const accessToken = generateJwtAccessToken(decodedToken.id);
+  res.status(200).json({ token: accessToken });
+});
 exports.protect = asyncErrorHandler(async (req, res, next) => {
+  //change to using bearer token
   const token = req.cookies.access_token;
   if (!token) {
     // check this error code
@@ -85,8 +149,19 @@ exports.signOut = asyncErrorHandler(async (req, res, next) => {
   });
 });
 
-const generateJwtToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: "30d",
+// const generateJwtToken = (id) => {
+//   return jwt.sign({ id }, process.env.JWT_SECRET, {
+//     expiresIn: "30d",
+//   });
+// };
+const generateJwtAccessToken = (id) => {
+  return jwt.sign({ id }, process.env.JWT_ACCESS_TOKEN_SECRET, {
+    expiresIn: "30s",
+  });
+};
+
+const generateJwtRefreshToken = (id) => {
+  return jwt.sign({ id }, process.env.JWT_REFRESH_TOKEN_SECRET, {
+    expiresIn: "1d",
   });
 };

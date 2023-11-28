@@ -12,5 +12,7 @@ const corsOptions = {
     }
   },
   optionsSuccessStatus: 200,
+  credentials: true,
 };
 module.exports = cors(corsOptions);
+// app.use(cors({ credentials: true, origin: 'your-frontend-origin' }));

@@ -15,7 +15,7 @@ app.use(cookieParser());
 app.use(express.urlencoded({ extended: false })); // what does this really do?? => urlencoded data parser middleware
 app.use(cors);
 
-app.get("/private", (req, res) => {
+app.get("/api/v1/private", (req, res) => {
   if (!req.cookies.access_token) return res.status(401).send("No cookies bro");
   res.status(200).json({ secret: "Ginger ale is a specific Root Beer" });
 });
