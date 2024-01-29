@@ -208,3 +208,37 @@ const generateJwtRefreshToken = (id) => {
     expiresIn: "7d",
   });
 };
+
+exports.reAuthenticate = asyncErrorHandler(async (req, res, next) => {
+  const { token } = req.body;
+  if (!token) {
+    const err = new CustomError("No token!! Not authenticated", 401);
+    return next(err);
+  }
+
+  jwt.verify(token, process.env.JWT_SECRET, async (err, decoded) => {
+    if (err) {
+      if (err.name === "TokenExpiredError") {
+        const err = new CustomError("Session expired", 401);
+        return next(err);
+      } else {
+        const err = new CustomError("Token is invalid", 403);
+        return next(err);
+      }
+    }
+    const user = await User.findById(decoded.id);
+    if (!user) {
+      const err = new CustomError("User not found", 404);
+      return next(err);
+    }
+    // const { password, ...userWithoutPassword } = user.toObject();
+    // res.status(200).json({
+    //   status: "success",
+    //   user: userWithoutPassword,
+    // });
+    res.status(200).json({
+      status: "success",
+      user,
+    });
+  });
+});

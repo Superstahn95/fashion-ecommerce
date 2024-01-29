@@ -18,7 +18,7 @@ exports.updateUser = asyncErrorHandler(async (req, res, next) => {
   // const user = await User.findById(req.user._id);
   //   const user = await User.findById(req.body.id); //temporal means
   const { file } = req;
-
+  console.log(req.file);
   //   if (!user) {
   //     const err = new CustomError("No user found", 404);
   //     return next(err);
@@ -31,15 +31,16 @@ exports.updateUser = asyncErrorHandler(async (req, res, next) => {
   );
 
   if (file) {
-    if (req.user.profilePhoto) {
-      const { public_id: imageId } = req.user.profilePhoto;
+    if (req.user.profilePicture) {
+      console.log("we have a file here");
+      const { public_id: imageId } = req.user.profilePicture;
       await cloudinary.uploader.destroy(imageId);
     }
     const { secure_url: url, public_id } = await cloudinary.uploader.upload(
       file.path
     );
 
-    updatedUser.profilePhoto = { url, public_id };
+    updatedUser.profilePicture = { url, public_id };
   }
   await updatedUser.save();
   res.status(200).json({

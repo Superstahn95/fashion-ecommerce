@@ -7,6 +7,6 @@ const router = express.Router();
 
 //protect these routes
 router.get("/", protect, getUsers);
-router.patch("/update", multer.single("profilePhoto"), protect, updateUser);
+router.patch("/update", multer.single("profilePicture"), protect, updateUser);
 
 module.exports = router;
