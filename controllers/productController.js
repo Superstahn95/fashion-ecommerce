@@ -6,21 +6,47 @@ const Category = require("../models/categoryModel");
 
 //public route
 exports.getProducts = asyncErrorHandler(async (req, res, next) => {
-  //need to employ pagination
-  // need to use the limit method
-  const { pageNo = 0, limit = 10 } = req.query;
-  console.log("we are here");
-  const products = await Product.find()
+  const { pageNo = 0, limit = 10, searchTerm } = req.query;
+
+  const searchQuery = searchTerm
+    ? { name: { $regex: new RegExp(searchTerm, "i") } }
+    : {};
+  // const searchQuery = { title: { $regex: new RegExp(searchTerm, "i") } }; // Search query for titles
+
+  const products = await Product.find(searchQuery)
     .sort({ createdAt: -1 })
     .skip(parseInt(pageNo))
     .limit(parseInt(limit))
     .populate("category");
+  console.log(products);
   res.status(200).json({
     status: "success",
     products,
   });
 });
 
+// exports.getProducts = asyncErrorHandler(async (req, res, next) => {
+//   const { pageNo = 0, limit = 10, searchTerm } = req.query;
+
+//   console.log(pageNo, limit, searchTerm);
+//   console.log(searchTerm);
+
+//   // Create a dynamic search query based on whether searchTerm is provided
+//   const searchQuery = searchTerm ? { name: { $regex: new RegExp(searchTerm, "i") } } : {};
+
+//   console.log("we are here");
+//   const products = await Product.find(searchQuery)
+//     .sort({ createdAt: -1 })
+//     .skip(parseInt(pageNo))
+//     .limit(parseInt(limit))
+//     .populate("category");
+
+//   console.log(products);
+//   res.status(200).json({
+//     status: "success",
+//     products,
+//   });
+// });
 //to be protected in time
 exports.createProduct = asyncErrorHandler(async (req, res, next) => {
   const { category: category_id } = req.body;

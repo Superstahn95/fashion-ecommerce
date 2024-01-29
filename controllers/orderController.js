@@ -1,12 +1,15 @@
 const Order = require("../models/orderModel");
+const User = require("../models/userModel");
 const asyncErrorHandler = require("../utils/asyncErrorHandler");
 const CustomError = require("../utils/customError");
 //user, email, items(product, quantity, price), totalAmount, shippingAddress, phoneNumber,
 
 exports.createOrder = asyncErrorHandler(async (req, res, next) => {
+  console.log("we are about creating an order");
   console.log(req.body);
   const { items } = req.body;
   const { paymentReference } = req.body;
+
   if (!paymentReference) {
     const err = new CustomError("No payment reference found", 400);
     return next(err);
@@ -20,8 +23,14 @@ exports.createOrder = asyncErrorHandler(async (req, res, next) => {
     0
   );
   let userData;
-  if (req.user) {
-    const user = req.user;
+  if (req.body.user) {
+    const user = await User.findById(req.body.user);
+    if (!user) {
+      const err = new CustomError("User not found", 404);
+      return next(err);
+    }
+    console.log("This is the id of the user with this order");
+    console.log(user._id);
     userData = {
       user: user._id,
       email: user.email,
@@ -46,6 +55,7 @@ exports.createOrder = asyncErrorHandler(async (req, res, next) => {
   // const {  totalAmount, shippingAddress, paymentMethod } = req.body;
   const order = new Order(userData);
   await order.save();
+  console.log(order);
   res.status(200).json({
     status: "success",
     message: "order placed successfully",
@@ -89,5 +99,16 @@ exports.updateOrderStatus = asyncErrorHandler(async (req, res, next) => {
   res.status(200).json({
     status: "success",
     order: updatedOrder,
+  });
+});
+
+//protected route
+exports.getUserOrder = asyncErrorHandler(async (req, res, next) => {
+  const { id } = req.params;
+
+  const orders = await Order.find({ user: id });
+  res.status(200).json({
+    status: "success",
+    orders,
   });
 });

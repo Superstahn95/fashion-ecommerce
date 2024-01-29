@@ -37,7 +37,7 @@ const userSchema = new mongoose.Schema({
   },
   confirmPassword: {
     type: String,
-    required: [true, "Please confirm password"],
+    // required: [true, "Please confirm password"],
     validate: {
       validator: function (val) {
         if (this.isModified("password")) {
@@ -47,11 +47,14 @@ const userSchema = new mongoose.Schema({
       },
       message: "Passwords do not match",
     },
-    role: {
-      type: String,
-      enum: ["user", "admin"],
-      default: "user",
+    required: function () {
+      return this.isNew || this.isModified("password");
     },
+  },
+  role: {
+    type: String,
+    enum: ["user", "admin"],
+    default: "user",
   },
   passwordChangedAt: Date,
   passwordResetToken: String,

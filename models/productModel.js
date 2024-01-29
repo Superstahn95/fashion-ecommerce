@@ -46,3 +46,4 @@ const productSchema = new mongoose.Schema({
 module.exports = mongoose.model("Product", productSchema);
 //Reviews field to be added and this will reference a review model (probably)
 //size to be probably added
+//name, category,short_description,price, image, gender

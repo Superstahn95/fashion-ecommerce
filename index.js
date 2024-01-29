@@ -15,10 +15,10 @@ app.use(cookieParser());
 app.use(express.urlencoded({ extended: false })); // what does this really do?? => urlencoded data parser middleware
 app.use(cors);
 
-app.get("/api/v1/private", (req, res) => {
-  if (!req.cookies.access_token) return res.status(401).send("No cookies bro");
-  res.status(200).json({ secret: "Ginger ale is a specific Root Beer" });
-});
+// app.get("/api/v1/private", (req, res) => {
+//   if (!req.cookies.access_token) return res.status(401).send("No cookies bro");
+//   res.status(200).json({ secret: "Ginger ale is a specific Root Beer" });
+// });
 //routing middleware
 app.use("/api/v1/product", require("./routes/productRoute"));
 app.use("/api/v1/category", require("./routes/categoryRoute"));
@@ -26,6 +26,7 @@ app.use("/api/v1/auth", require("./routes/authRoute"));
 app.use("/api/v1/collection", require("./routes/collectionRoute"));
 app.use("/api/v1/order", require("./routes/orderRoute"));
 app.use("/api/v1/paystack", require("./routes/paystackRoute"));
+app.use("/api/v1/user", require("./routes/userRoute"));
 app.use("*", (req, res) => {
   res.status(404).json({
     status: "fail",
